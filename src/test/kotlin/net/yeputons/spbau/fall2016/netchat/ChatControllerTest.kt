@@ -1,10 +1,14 @@
 package net.yeputons.spbau.fall2016.netchat
 
+import com.natpryce.hamkrest.*
+import com.natpryce.hamkrest.assertion.*
 import com.nhaarman.mockito_kotlin.*
 import io.grpc.stub.StreamObserver
 import net.ldvsoft.spbau.messenger.protocol.P2PMessenger
 import org.junit.Assert.*
 import org.junit.Test
+import org.mockito.AdditionalMatchers
+import java.util.*
 
 class ChatControllerTest {
     val mockWriter = mock<StreamObserver<P2PMessenger.Message>>()
@@ -124,6 +128,36 @@ class ChatControllerTest {
         assertFalse(controller.otherIsTyping)
 
         verify(listener, atLeast(1)).onOtherIsTypingChanged()
+        verifyNoMoreInteractions(listener)
+    }
+
+    @Test fun testSendMessage() {
+        val listener = mock<ChatControllerListener>()
+        controller.myName = "ME"
+        controller.addChatControllerListener(listener)
+
+        val startDate = Date()
+        whenever(listener.onNewMessage(any()))
+                .then { msg ->
+                    val msg = msg.getArgument<ChatMessage>(0)
+                    assertEquals("ME", msg.author)
+                    assertEquals("Hello1", msg.text)
+                    assertThat(msg.date, greaterThanOrEqualTo(startDate))
+                }
+        whenever(mockWriter.onNext(any()))
+                .then { msg ->
+                    val msg = msg.getArgument<P2PMessenger.Message>(0)
+                    assertEquals(P2PMessenger.Message.BodyCase.TEXTMESSAGE, msg.bodyCase)
+                    val textMsg = msg.textMessage
+                    assertNotNull(textMsg)
+                    assertEquals("Hello1", textMsg.text)
+                    assertThat(textMsg.date, greaterThanOrEqualTo(ProtobufHelper.dateToInt(startDate)))
+                }
+        controller.sendMessage("Hello1")
+        verify(listener, times(1)).onNewMessage(any())
+        verify(mockWriter, times(1)).onNext(any())
+        assertFalse(controller.otherIsTyping)
+
         verifyNoMoreInteractions(listener)
     }
 }
