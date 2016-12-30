@@ -39,6 +39,17 @@ class ChatPanel(val controller: ChatController) : JPanel() {
         }
     }
 
+
+    var messageWasEmpty = true
+
+    fun messageChanged() {
+        var messageIsEmpty = message.text == ""
+        if (!messageIsEmpty && messageWasEmpty) {
+            controller.startTyping()
+        }
+        messageWasEmpty = messageIsEmpty
+    }
+
     fun sendMessage() {
         if (message.text != "") {
             controller.sendMessage(message.text)
@@ -55,8 +66,8 @@ class ChatPanel(val controller: ChatController) : JPanel() {
             override fun keyPressed(e: KeyEvent?) {
                 if (e!!.keyCode == KeyEvent.VK_ENTER) {
                     submit.doClick()
-                } else if (message.text != "") {
-                    controller.startTyping()
+                } else {
+                    messageChanged()
                 }
             }
         })
