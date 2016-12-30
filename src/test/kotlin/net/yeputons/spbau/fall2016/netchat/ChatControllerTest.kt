@@ -5,128 +5,125 @@ import io.grpc.stub.StreamObserver
 import net.ldvsoft.spbau.messenger.protocol.P2PMessenger
 import org.junit.Assert.*
 import org.junit.Test
-import org.mockito.Mockito
 
 class ChatControllerTest {
-    class ReadOnlyTest {
-        val mockWriter = mock<StreamObserver<P2PMessenger.Message>>()
-        val controller = ChatController(mockWriter)
+    val mockWriter = mock<StreamObserver<P2PMessenger.Message>>()
+    val controller = ChatController(mockWriter)
 
-        @Test fun testChangeMyName() {
-            val listener = mock<ChatControllerListener>()
-            controller.addChatControllerListener(listener)
+    @Test fun testChangeMyName() {
+        val listener = mock<ChatControllerListener>()
+        controller.addChatControllerListener(listener)
 
-            whenever(listener.onMyNameChanged())
-                    .then { assertEquals(controller.myName, "hello1") }
-            controller.myName = "hello1"
-            verify(listener, times(1)).onMyNameChanged()
-            assertEquals("hello1", controller.myName)
+        whenever(listener.onMyNameChanged())
+                .then { assertEquals(controller.myName, "hello1") }
+        controller.myName = "hello1"
+        verify(listener, times(1)).onMyNameChanged()
+        assertEquals("hello1", controller.myName)
 
-            whenever(listener.onMyNameChanged())
-                    .then { assertEquals(controller.myName, "hello2") }
-            controller.myName = "hello2"
-            verify(listener, times(2)).onMyNameChanged()
-            assertEquals("hello2", controller.myName)
+        whenever(listener.onMyNameChanged())
+                .then { assertEquals(controller.myName, "hello2") }
+        controller.myName = "hello2"
+        verify(listener, times(2)).onMyNameChanged()
+        assertEquals("hello2", controller.myName)
 
-            verifyNoMoreInteractions(listener)
-        }
+        verifyNoMoreInteractions(listener)
+    }
 
-        @Test fun testMultipleListenersAddRemove() {
-            val listener1 = mock<ChatControllerListener>()
-            val listener2 = mock<ChatControllerListener>()
+    @Test fun testMultipleListenersAddRemove() {
+        val listener1 = mock<ChatControllerListener>()
+        val listener2 = mock<ChatControllerListener>()
 
-            controller.addChatControllerListener(listener1)
-            controller.myName = "hello1"
-            verify(listener1, times(1)).onMyNameChanged()
-            verify(listener2, times(0)).onMyNameChanged()
+        controller.addChatControllerListener(listener1)
+        controller.myName = "hello1"
+        verify(listener1, times(1)).onMyNameChanged()
+        verify(listener2, times(0)).onMyNameChanged()
 
-            controller.addChatControllerListener(listener2)
-            controller.myName = "hello2"
-            verify(listener1, times(2)).onMyNameChanged()
-            verify(listener2, times(1)).onMyNameChanged()
+        controller.addChatControllerListener(listener2)
+        controller.myName = "hello2"
+        verify(listener1, times(2)).onMyNameChanged()
+        verify(listener2, times(1)).onMyNameChanged()
 
-            controller.removeChatControllerListener(listener1)
-            controller.myName = "hello3"
-            verify(listener1, times(2)).onMyNameChanged()
-            verify(listener2, times(2)).onMyNameChanged()
-        }
+        controller.removeChatControllerListener(listener1)
+        controller.myName = "hello3"
+        verify(listener1, times(2)).onMyNameChanged()
+        verify(listener2, times(2)).onMyNameChanged()
+    }
 
-        @Test fun handlePeerInfo() {
-            val listener = mock<ChatControllerListener>()
-            controller.addChatControllerListener(listener)
-            whenever(listener.onOtherNameChanged())
-                    .then { assertEquals(controller.otherName, "hello") }
+    @Test fun handlePeerInfo() {
+        val listener = mock<ChatControllerListener>()
+        controller.addChatControllerListener(listener)
+        whenever(listener.onOtherNameChanged())
+                .then { assertEquals(controller.otherName, "hello") }
 
-            controller.handle(
-                    P2PMessenger.PeerInfo.newBuilder()
-                            .setName("hello")
-                            .build()
-            )
+        controller.handle(
+                P2PMessenger.PeerInfo.newBuilder()
+                        .setName("hello")
+                        .build()
+        )
 
-            verify(listener, times(1)).onOtherNameChanged()
-            verifyNoMoreInteractions(listener)
-        }
+        verify(listener, times(1)).onOtherNameChanged()
+        verifyNoMoreInteractions(listener)
+    }
 
-        @Test fun handleStartedTyping() {
-            assertFalse(controller.otherIsTyping)
+    @Test fun handleStartedTyping() {
+        assertFalse(controller.otherIsTyping)
 
-            val listener = mock<ChatControllerListener>()
-            controller.addChatControllerListener(listener)
-            whenever(listener.onOtherIsTypingChanged())
-                    .then { assertTrue(controller.otherIsTyping) }
+        val listener = mock<ChatControllerListener>()
+        controller.addChatControllerListener(listener)
+        whenever(listener.onOtherIsTypingChanged())
+                .then { assertTrue(controller.otherIsTyping) }
 
-            controller.handle(
-                    P2PMessenger.StartedTyping.newBuilder()
-                            .setDate(0)
-                            .build()
-            )
-            verify(listener, times(1)).onOtherIsTypingChanged()
+        controller.handle(
+                P2PMessenger.StartedTyping.newBuilder()
+                        .setDate(0)
+                        .build()
+        )
+        verify(listener, times(1)).onOtherIsTypingChanged()
 
-            controller.handle(
-                    P2PMessenger.StartedTyping.newBuilder()
-                            .setDate(0)
-                            .build()
-            )
+        controller.handle(
+                P2PMessenger.StartedTyping.newBuilder()
+                        .setDate(0)
+                        .build()
+        )
 
-            verify(listener, times(2)).onOtherIsTypingChanged()
+        verify(listener, times(2)).onOtherIsTypingChanged()
 
-            verifyNoMoreInteractions(listener)
-        }
+        verifyNoMoreInteractions(listener)
+    }
 
-        @Test fun handleNewMessageAndTyping() {
-            val msg1 = P2PMessenger.TextMessage.newBuilder()
-                    .setText("Hello1")
-                    .setDate(1)
-                    .build()
-            val msg2 = P2PMessenger.TextMessage.newBuilder()
-                    .setText("Hello2")
-                    .setDate(2)
-                    .build()
-            val listener = mock<ChatControllerListener>()
-            controller.handle(
-                    P2PMessenger.PeerInfo.newBuilder()
-                            .setName("OTHER")
-                            .build()
-            )
-            assertEquals("OTHER", controller.otherName)
-            controller.addChatControllerListener(listener)
+    @Test fun handleNewMessageAndTyping() {
+        val msg1 = P2PMessenger.TextMessage.newBuilder()
+                .setText("Hello1")
+                .setDate(1)
+                .build()
+        val msg2 = P2PMessenger.TextMessage.newBuilder()
+                .setText("Hello2")
+                .setDate(2)
+                .build()
+        val listener = mock<ChatControllerListener>()
+        controller.handle(
+                P2PMessenger.PeerInfo.newBuilder()
+                        .setName("OTHER")
+                        .build()
+        )
+        assertEquals("OTHER", controller.otherName)
+        controller.addChatControllerListener(listener)
 
-            controller.handle(P2PMessenger.StartedTyping.newBuilder().setDate(0).build())
-            verify(listener, times(1)).onOtherIsTypingChanged()
-            assertTrue(controller.otherIsTyping)
+        controller.handle(P2PMessenger.StartedTyping.newBuilder().setDate(0).build())
+        verify(listener, times(1)).onOtherIsTypingChanged()
+        assertTrue(controller.otherIsTyping)
 
-            whenever(listener.onOtherIsTypingChanged())
-                    .then { assertFalse(controller.otherIsTyping) }
-            controller.handle(msg1)
-            verify(listener, times(1)).onNewMessage(ChatMessage("OTHER", "Hello1", ProtobufHelper.intToDate(1)))
-            assertFalse(controller.otherIsTyping)
+        whenever(listener.onOtherIsTypingChanged())
+                .then { assertFalse(controller.otherIsTyping) }
+        controller.handle(msg1)
+        verify(listener, times(1)).onNewMessage(ChatMessage("OTHER", "Hello1", ProtobufHelper.intToDate(1)))
+        assertFalse(controller.otherIsTyping)
 
-            controller.handle(msg2)
-            verify(listener, times(1)).onNewMessage(ChatMessage("OTHER", "Hello2", ProtobufHelper.intToDate(2)))
-            assertFalse(controller.otherIsTyping)
+        controller.handle(msg2)
+        verify(listener, times(1)).onNewMessage(ChatMessage("OTHER", "Hello2", ProtobufHelper.intToDate(2)))
+        assertFalse(controller.otherIsTyping)
 
-            verify(listener, atLeast(1)).onOtherIsTypingChanged()
-            verifyNoMoreInteractions(listener)
-        }
+        verify(listener, atLeast(1)).onOtherIsTypingChanged()
+        verifyNoMoreInteractions(listener)
     }
 }
