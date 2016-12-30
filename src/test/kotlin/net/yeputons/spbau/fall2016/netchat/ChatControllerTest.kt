@@ -75,26 +75,28 @@ class ChatControllerTest {
     }
 
     @Test fun testHandleStartedTyping() {
-        assertFalse(controller.otherIsTyping)
+        assertNull(controller.otherIsTyping)
 
         val listener = mock<ChatControllerListener>()
+        val date = Date()
         controller.addChatControllerListener(listener)
-        whenever(listener.onOtherIsTypingChanged())
-                .then { assertTrue(controller.otherIsTyping) }
 
+        whenever(listener.onOtherIsTypingChanged())
+                .then { assertEquals(ProtobufHelper.intToDate(1), controller.otherIsTyping) }
         controller.handle(
                 P2PMessenger.StartedTyping.newBuilder()
-                        .setDate(0)
+                        .setDate(1)
                         .build()
         )
         verify(listener, times(1)).onOtherIsTypingChanged()
 
+        whenever(listener.onOtherIsTypingChanged())
+                .then { assertEquals(ProtobufHelper.intToDate(2), controller.otherIsTyping) }
         controller.handle(
                 P2PMessenger.StartedTyping.newBuilder()
-                        .setDate(0)
+                        .setDate(2)
                         .build()
         )
-
         verify(listener, times(2)).onOtherIsTypingChanged()
 
         verifyNoMoreInteractions(listener)
@@ -120,17 +122,17 @@ class ChatControllerTest {
 
         controller.handle(P2PMessenger.StartedTyping.newBuilder().setDate(0).build())
         verify(listener, times(1)).onOtherIsTypingChanged()
-        assertTrue(controller.otherIsTyping)
+        assertNotNull(controller.otherIsTyping)
 
         whenever(listener.onOtherIsTypingChanged())
-                .then { assertFalse(controller.otherIsTyping) }
+                .then { assertNull(controller.otherIsTyping) }
         controller.handle(msg1)
         verify(listener, times(1)).onNewMessage(ChatMessage("OTHER", "Hello1", ProtobufHelper.intToDate(1)))
-        assertFalse(controller.otherIsTyping)
+        assertNull(controller.otherIsTyping)
 
         controller.handle(msg2)
         verify(listener, times(1)).onNewMessage(ChatMessage("OTHER", "Hello2", ProtobufHelper.intToDate(2)))
-        assertFalse(controller.otherIsTyping)
+        assertNull(controller.otherIsTyping)
 
         verify(listener, atLeast(1)).onOtherIsTypingChanged()
         verifyNoMoreInteractions(listener)
@@ -178,7 +180,7 @@ class ChatControllerTest {
         controller.sendMessage("Hello1")
         verify(listener, times(1)).onNewMessage(any())
         verify(mockWriter, times(1)).onNext(any())
-        assertFalse(controller.otherIsTyping)
+        assertNull(controller.otherIsTyping)
 
         verifyNoMoreInteractions(listener)
     }
@@ -199,7 +201,7 @@ class ChatControllerTest {
                 }
         controller.startTyping()
         verify(mockWriter, times(1)).onNext(any())
-        assertFalse(controller.otherIsTyping)
+        assertNull(controller.otherIsTyping)
 
         verifyNoMoreInteractions(listener)
     }

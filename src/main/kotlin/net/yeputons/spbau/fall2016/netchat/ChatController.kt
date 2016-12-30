@@ -40,7 +40,7 @@ class ChatController() : ProtobufMessageHandler() {
             listeners.forEach { it.onOtherNameChanged() }
         }
 
-    var otherIsTyping: Boolean = false
+    var otherIsTyping: Date? = null
         get() = field
         private set(newOtherIsTyping) {
             field = newOtherIsTyping
@@ -110,13 +110,13 @@ class ChatController() : ProtobufMessageHandler() {
 
     override fun handle(startedTyping: P2PMessenger.StartedTyping) {
         LOG.debug("Other started typing")
-        otherIsTyping = true
+        otherIsTyping = ProtobufHelper.intToDate(startedTyping.date)
     }
 
     override fun handle(textMessage: P2PMessenger.TextMessage) {
         val msg = ChatMessage(otherName, textMessage.text, ProtobufHelper.intToDate(textMessage.date))
         LOG.debug("Incoming text message: $msg")
-        otherIsTyping = false
+        otherIsTyping = null
         listeners.forEach { it.onNewMessage(msg) }
     }
 
