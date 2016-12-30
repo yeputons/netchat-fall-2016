@@ -21,14 +21,16 @@ class ChatController() : ProtobufMessageHandler() {
             }
             field = newMyName
             listeners.forEach { it.onMyNameChanged() }
-            writer!!.onNext(
-                    P2PMessenger.Message.newBuilder()
-                            .setPeerInfo(
-                                    P2PMessenger.PeerInfo.newBuilder()
-                                            .setName(newMyName)
-                            )
-                            .build()
-            )
+            if (writer != null) {
+                writer!!.onNext(
+                        P2PMessenger.Message.newBuilder()
+                                .setPeerInfo(
+                                        P2PMessenger.PeerInfo.newBuilder()
+                                                .setName(newMyName)
+                                )
+                                .build()
+                )
+            }
         }
 
     var otherName: String = DEFAULT_NAME
@@ -46,6 +48,23 @@ class ChatController() : ProtobufMessageHandler() {
         }
 
     var writer: StreamObserver<P2PMessenger.Message>? = null
+        get() = field
+        set(newWriter) {
+            if (field == newWriter) {
+                return
+            }
+            field = newWriter
+            if (writer != null) {
+                writer!!.onNext(
+                        P2PMessenger.Message.newBuilder()
+                                .setPeerInfo(
+                                        P2PMessenger.PeerInfo.newBuilder()
+                                                .setName(myName)
+                                )
+                                .build()
+                )
+            }
+        }
 
     fun addChatControllerListener(listener: ChatControllerListener) {
         listeners += listener

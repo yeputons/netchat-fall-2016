@@ -15,6 +15,7 @@ class ChatControllerTest {
     val controller = ChatController()
 
     @Before fun setUp() {
+        controller.myName = "BAD_NAME"
         controller.writer = mockWriter
     }
 
@@ -133,6 +134,22 @@ class ChatControllerTest {
 
         verify(listener, atLeast(1)).onOtherIsTypingChanged()
         verifyNoMoreInteractions(listener)
+    }
+
+    @Test fun testSendsPeerInfoToNewWriter() {
+        controller.myName = "ME"
+        controller.writer = null
+        reset(mockWriter)
+        whenever(mockWriter.onNext(any()))
+                .then { msg ->
+                    val msg = msg.getArgument<P2PMessenger.Message>(0)
+                    assertEquals(P2PMessenger.Message.BodyCase.PEERINFO, msg.bodyCase)
+                    val peerInfoMsg = msg.peerInfo
+                    assertNotNull(peerInfoMsg)
+                    assertEquals("ME", peerInfoMsg.name)
+                }
+        controller.writer = mockWriter
+        verify(mockWriter, times(1)).onNext(any())
     }
 
     @Test fun testSendMessage() {
