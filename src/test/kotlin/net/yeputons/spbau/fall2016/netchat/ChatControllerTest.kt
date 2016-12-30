@@ -6,13 +6,17 @@ import com.nhaarman.mockito_kotlin.*
 import io.grpc.stub.StreamObserver
 import net.ldvsoft.spbau.messenger.protocol.P2PMessenger
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
-import org.mockito.AdditionalMatchers
 import java.util.*
 
 class ChatControllerTest {
     val mockWriter = mock<StreamObserver<P2PMessenger.Message>>()
-    val controller = ChatController(mockWriter)
+    val controller = ChatController()
+
+    @Before fun setUp() {
+        controller.writer = mockWriter
+    }
 
     @Test fun testChangeMyName() {
         val listener = mock<ChatControllerListener>()

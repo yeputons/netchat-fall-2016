@@ -5,7 +5,7 @@ import net.ldvsoft.spbau.messenger.protocol.P2PMessenger
 import org.slf4j.LoggerFactory
 import java.util.*
 
-class ChatController(val writer: StreamObserver<P2PMessenger.Message>) : ProtobufMessageHandler() {
+class ChatController() : ProtobufMessageHandler() {
     companion object {
         val DEFAULT_NAME = "user"
         val LOG = LoggerFactory.getLogger(ChatController::class.java)
@@ -34,6 +34,8 @@ class ChatController(val writer: StreamObserver<P2PMessenger.Message>) : Protobu
             listeners.forEach { it.onOtherIsTypingChanged() }
         }
 
+    var writer: StreamObserver<P2PMessenger.Message>? = null
+
     fun addChatControllerListener(listener: ChatControllerListener) {
         listeners += listener
     }
@@ -48,7 +50,7 @@ class ChatController(val writer: StreamObserver<P2PMessenger.Message>) : Protobu
                 P2PMessenger.StartedTyping.newBuilder()
                         .setDate(ProtobufHelper.dateToInt(Date()))
                         .build()
-        writer.onNext(
+        writer!!.onNext(
                 P2PMessenger.Message.newBuilder()
                         .setStartedTyping(startedTypingMessage)
                         .build()
@@ -63,7 +65,7 @@ class ChatController(val writer: StreamObserver<P2PMessenger.Message>) : Protobu
                         .setText(msg.text)
                         .setDate(ProtobufHelper.dateToInt(msg.date))
                         .build()
-        writer.onNext(
+        writer!!.onNext(
                 P2PMessenger.Message.newBuilder()
                         .setTextMessage(textMessage)
                         .build()
@@ -90,7 +92,7 @@ class ChatController(val writer: StreamObserver<P2PMessenger.Message>) : Protobu
 
     override fun onCompleted() {
         LOG.info("onCompleted()")
-        writer.onCompleted()
+        writer!!.onCompleted()
     }
 }
 
