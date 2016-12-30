@@ -160,4 +160,24 @@ class ChatControllerTest {
 
         verifyNoMoreInteractions(listener)
     }
+
+    @Test fun testStartTyping() {
+        val listener = mock<ChatControllerListener>()
+        controller.addChatControllerListener(listener)
+
+        val startDate = Date()
+        whenever(mockWriter.onNext(any()))
+                .then { msg ->
+                    val msg = msg.getArgument<P2PMessenger.Message>(0)
+                    assertEquals(P2PMessenger.Message.BodyCase.STARTEDTYPING, msg.bodyCase)
+                    val startedTypingMsg = msg.startedTyping
+                    assertNotNull(startedTypingMsg)
+                    assertThat(startedTypingMsg.date, greaterThanOrEqualTo(ProtobufHelper.dateToInt(startDate)))
+                }
+        controller.startTyping()
+        verify(mockWriter, times(1)).onNext(any())
+        assertFalse(controller.otherIsTyping)
+
+        verifyNoMoreInteractions(listener)
+    }
 }

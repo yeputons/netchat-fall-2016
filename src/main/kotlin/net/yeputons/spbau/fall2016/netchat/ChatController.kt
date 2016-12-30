@@ -42,6 +42,19 @@ class ChatController(val writer: StreamObserver<P2PMessenger.Message>) : Protobu
         listeners -= listener
     }
 
+    fun startTyping() {
+        LOG.debug("I started typing")
+        val startedTypingMessage =
+                P2PMessenger.StartedTyping.newBuilder()
+                        .setDate(ProtobufHelper.dateToInt(Date()))
+                        .build()
+        writer.onNext(
+                P2PMessenger.Message.newBuilder()
+                        .setStartedTyping(startedTypingMessage)
+                        .build()
+        )
+    }
+
     fun sendMessage(text: String) {
         val msg = ChatMessage(myName, text, Calendar.getInstance().time)
         LOG.debug("Sending message: $msg")
