@@ -7,13 +7,12 @@ import java.util.*
 
 class ChatController() : ProtobufMessageHandler() {
     companion object {
-        val DEFAULT_NAME = "user"
         val LOG = LoggerFactory.getLogger(ChatController::class.java)
     }
 
     private val listeners = mutableSetOf<ChatControllerListener>()
 
-    var myName: String = DEFAULT_NAME
+    var myName: String = "ME"
         get() = field
         set(newMyName) {
             if (field == newMyName) {
@@ -33,7 +32,7 @@ class ChatController() : ProtobufMessageHandler() {
             }
         }
 
-    var otherName: String = DEFAULT_NAME
+    var otherName: String = "OTHER USER"
         get() = field
         private set(newOtherName) {
             field = newOtherName
