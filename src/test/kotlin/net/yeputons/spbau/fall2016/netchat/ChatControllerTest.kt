@@ -57,7 +57,7 @@ class ChatControllerTest {
         verify(listener2, times(2)).onMyNameChanged()
     }
 
-    @Test fun handlePeerInfo() {
+    @Test fun testHandlePeerInfo() {
         val listener = mock<ChatControllerListener>()
         controller.addChatControllerListener(listener)
         whenever(listener.onOtherNameChanged())
@@ -73,7 +73,7 @@ class ChatControllerTest {
         verifyNoMoreInteractions(listener)
     }
 
-    @Test fun handleStartedTyping() {
+    @Test fun testHandleStartedTyping() {
         assertFalse(controller.otherIsTyping)
 
         val listener = mock<ChatControllerListener>()
@@ -99,7 +99,7 @@ class ChatControllerTest {
         verifyNoMoreInteractions(listener)
     }
 
-    @Test fun handleNewMessageAndTyping() {
+    @Test fun testHandleNewMessageAndTyping() {
         val msg1 = P2PMessenger.TextMessage.newBuilder()
                 .setText("Hello1")
                 .setDate(1)
