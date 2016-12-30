@@ -138,6 +138,7 @@ class ChatControllerTest {
     @Test fun testSendMessage() {
         val listener = mock<ChatControllerListener>()
         controller.myName = "ME"
+        reset(mockWriter)
         controller.addChatControllerListener(listener)
 
         val startDate = Date()
@@ -167,6 +168,7 @@ class ChatControllerTest {
 
     @Test fun testStartTyping() {
         val listener = mock<ChatControllerListener>()
+        reset(mockWriter)
         controller.addChatControllerListener(listener)
 
         val startDate = Date()
@@ -183,5 +185,24 @@ class ChatControllerTest {
         assertFalse(controller.otherIsTyping)
 
         verifyNoMoreInteractions(listener)
+    }
+
+    @Test fun testPeerInfo() {
+        val listener = mock<ChatControllerListener>()
+        reset(mockWriter)
+        controller.addChatControllerListener(listener)
+
+        whenever(mockWriter.onNext(any()))
+                .then { msg ->
+                    val msg = msg.getArgument<P2PMessenger.Message>(0)
+                    assertEquals(P2PMessenger.Message.BodyCase.PEERINFO, msg.bodyCase)
+                    val peerInfoMsg = msg.peerInfo
+                    assertNotNull(peerInfoMsg)
+                    assertEquals("HELLO", peerInfoMsg.name)
+                }
+        controller.myName = "HELLO"
+        verify(mockWriter, times(1)).onNext(any())
+
+        verifyNoMoreInteractions(mockWriter)
     }
 }

@@ -16,8 +16,19 @@ class ChatController() : ProtobufMessageHandler() {
     var myName: String = DEFAULT_NAME
         get() = field
         set(newMyName) {
+            if (field == newMyName) {
+                return
+            }
             field = newMyName
             listeners.forEach { it.onMyNameChanged() }
+            writer!!.onNext(
+                    P2PMessenger.Message.newBuilder()
+                            .setPeerInfo(
+                                    P2PMessenger.PeerInfo.newBuilder()
+                                            .setName(newMyName)
+                            )
+                            .build()
+            )
         }
 
     var otherName: String = DEFAULT_NAME
