@@ -29,12 +29,12 @@ class ChatControllerFactoryTest {
         Thread(object : Runnable {
             override fun run() {
                 LOG.debug("Creating client")
-                clientFuture.complete(ChatControllerFactory.connect(ChatClientConfiguration("localhost", port)))
+                clientFuture.complete(ChatControllerFactory.connect(ChatClientConfiguration("user-client", "localhost", port)))
                 LOG.debug("Client created")
             }
         }).start()
         LOG.debug("Creating server")
-        val server = ChatControllerFactory.connect(ChatServerConfiguration(port))
+        val server = ChatControllerFactory.connect(ChatServerConfiguration("user-server", port))
         LOG.debug("Server created")
         val client = clientFuture.get()
 

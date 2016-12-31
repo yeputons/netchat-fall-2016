@@ -26,6 +26,7 @@ object ChatControllerFactory {
                 .addService(object : MessengerGrpc.MessengerImplBase() {
                     override fun chat(responseObserver: StreamObserver<P2PMessenger.Message>?): StreamObserver<P2PMessenger.Message> {
                         val controller = ChatController()
+                        controller.myName = configuration.name
                         controller.writer = responseObserver
                         controllerFuture.complete(controller)
                         return controller
@@ -48,6 +49,7 @@ object ChatControllerFactory {
         val stub = MessengerGrpc.newStub(channel)
         LOG.info("Connected to server")
         val controller = ChatController()
+        controller.myName = configuration.name
         controller.writer = stub.chat(controller)
         return controller
     }
