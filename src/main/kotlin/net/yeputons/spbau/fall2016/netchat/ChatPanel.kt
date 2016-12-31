@@ -2,6 +2,7 @@ package net.yeputons.spbau.fall2016.netchat
 
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.event.*
 import javax.swing.*
 import javax.swing.border.Border
@@ -58,6 +59,7 @@ class ChatPanel(val controller: ChatController) : JPanel() {
     }
 
     init {
+        chat.font = Font("Monospaced", Font.PLAIN, 14)
         chat.isEditable = false
         chat.isFocusable = false
         controller.addChatControllerListener(chatControllerListener)
