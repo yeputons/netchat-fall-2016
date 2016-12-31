@@ -1,9 +1,15 @@
 package net.yeputons.spbau.fall2016.netchat
 
 import javax.swing.JFrame
+import javax.swing.JOptionPane
 
 fun main(args: Array<String>) {
-    val config = ChatClientConfiguration("Netchat user", "localhost", 12345)
+    val config = ChatConfigurationDialog.showConfigurationDialog()
+    if (config == null) {
+        System.exit(1)
+        return
+    }
+
     val controller = ChatControllerFactory.connect(config)
     val panel = ChatPanel(controller)
 
