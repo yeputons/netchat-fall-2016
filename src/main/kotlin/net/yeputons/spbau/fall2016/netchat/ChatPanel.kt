@@ -23,7 +23,7 @@ class ChatPanel(val controller: ChatController) : JPanel() {
         }
 
         override fun onNewMessage(message: ChatMessage) {
-            chat.append("$message\n")
+            chat.append("${message.author} on ${message.date}: ${message.text}\n")
         }
 
         override fun onMyNameChanged() {
