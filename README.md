@@ -3,6 +3,7 @@
 # netchat-fall-2016
 Educational project from Fall 2016.
 
+This project is compatible with [@LDVSoft's](https://github.com/LDVSOFT/spbau-term5-software-design/tree/p2p-messenger-gRPC)
 
 # Building with Maven
 

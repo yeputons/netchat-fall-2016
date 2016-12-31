@@ -1,0 +1,135 @@
+package net.yeputons.spbau.fall2016.netchat
+
+import io.grpc.stub.StreamObserver
+import net.ldvsoft.spbau.messenger.protocol.P2PMessenger
+import org.slf4j.LoggerFactory
+import java.util.*
+
+class ChatController() : ProtobufMessageHandler() {
+    companion object {
+        val LOG = LoggerFactory.getLogger(ChatController::class.java)
+    }
+
+    private val listeners = mutableSetOf<ChatControllerListener>()
+
+    var myName: String = "ME"
+        get() = field
+        set(newMyName) {
+            if (field == newMyName) {
+                return
+            }
+            field = newMyName
+            listeners.forEach { it.onMyNameChanged() }
+            if (writer != null) {
+                writer!!.onNext(
+                        P2PMessenger.Message.newBuilder()
+                                .setPeerInfo(
+                                        P2PMessenger.PeerInfo.newBuilder()
+                                                .setName(newMyName)
+                                )
+                                .build()
+                )
+            }
+        }
+
+    var otherName: String = "OTHER USER"
+        get() = field
+        private set(newOtherName) {
+            field = newOtherName
+            listeners.forEach { it.onOtherNameChanged() }
+        }
+
+    var otherIsTyping: Date? = null
+        get() = field
+        private set(newOtherIsTyping) {
+            field = newOtherIsTyping
+            listeners.forEach { it.onOtherIsTypingChanged() }
+        }
+
+    var writer: StreamObserver<P2PMessenger.Message>? = null
+        get() = field
+        set(newWriter) {
+            if (field == newWriter) {
+                return
+            }
+            field = newWriter
+            if (writer != null) {
+                writer!!.onNext(
+                        P2PMessenger.Message.newBuilder()
+                                .setPeerInfo(
+                                        P2PMessenger.PeerInfo.newBuilder()
+                                                .setName(myName)
+                                )
+                                .build()
+                )
+            }
+        }
+
+    fun addChatControllerListener(listener: ChatControllerListener) {
+        listeners += listener
+    }
+
+    fun removeChatControllerListener(listener: ChatControllerListener) {
+        listeners -= listener
+    }
+
+    fun startTyping() {
+        LOG.debug("I started typing")
+        val startedTypingMessage =
+                P2PMessenger.StartedTyping.newBuilder()
+                        .setDate(ProtobufHelper.dateToInt(Date()))
+                        .build()
+        writer!!.onNext(
+                P2PMessenger.Message.newBuilder()
+                        .setStartedTyping(startedTypingMessage)
+                        .build()
+        )
+    }
+
+    fun sendMessage(text: String) {
+        val msg = ChatMessage(myName, text, Calendar.getInstance().time)
+        LOG.debug("Sending message: $msg")
+        val textMessage =
+                P2PMessenger.TextMessage.newBuilder()
+                        .setText(msg.text)
+                        .setDate(ProtobufHelper.dateToInt(msg.date))
+                        .build()
+        writer!!.onNext(
+                P2PMessenger.Message.newBuilder()
+                        .setTextMessage(textMessage)
+                        .build()
+        )
+        listeners.forEach { it.onNewMessage(msg) }
+    }
+
+    override fun handle(peerInfo: P2PMessenger.PeerInfo) {
+        LOG.debug("Other changed name to ${peerInfo.name}")
+        otherName = peerInfo.name
+    }
+
+    override fun handle(startedTyping: P2PMessenger.StartedTyping) {
+        LOG.debug("Other started typing")
+        otherIsTyping = ProtobufHelper.intToDate(startedTyping.date)
+    }
+
+    override fun handle(textMessage: P2PMessenger.TextMessage) {
+        val msg = ChatMessage(otherName, textMessage.text, ProtobufHelper.intToDate(textMessage.date))
+        LOG.debug("Incoming text message: $msg")
+        otherIsTyping = null
+        listeners.forEach { it.onNewMessage(msg) }
+    }
+
+    override fun onCompleted() {
+        LOG.info("onCompleted()")
+        writer!!.onCompleted()
+    }
+}
+
+data class ChatMessage(val author: String, val text: String, val date: Date)
+
+interface ChatControllerListener {
+    fun onMyNameChanged()
+    fun onOtherNameChanged()
+    fun onOtherIsTypingChanged()
+    fun onNewMessage(message: ChatMessage)
+}
